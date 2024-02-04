@@ -31,7 +31,23 @@ package("ifort")
             end
         end
     end)
-
+    on_fetch("@windows", function(package, opt)
+        if opt.system then
+            local ifortenv = import("detect.sdks.find_ifortenv")()
+            if ifortenv then
+                ifort = ifortenv.ifortvars[package:targetarch()]
+                package:addenv("PATH", path.splitenv(ifort.PATH))
+                package:addenv("LIBPATH", path.splitenv(ifort.LIBPATH))
+                package:addenv("INCLUDE", path.splitenv(ifort.INCLUDE))
+                package:addenv("LIB", path.splitenv(ifort.LIB))
+                local result = {
+                    includedirs = path.splitenv(ifort.INCLUDE),
+                    linkdirs = path.splitenv(ifort.LIBPATH)
+                }
+                return result
+            end
+        end
+    end)
     on_install("@linux", function(package)
         local arch = package:is_arch("x86_64") and "intel64" or "ia32"
         local plat = package:plat()
